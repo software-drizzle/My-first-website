@@ -1,8 +1,888 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale"><title>my first project</title></head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daily Profit Tracker</title>
+<style>
+  :root{
+    --accent-1:#6a11cb;
+    --accent-2:#2575fc;
+    --bg-light:#ffffff;
+    --text-light:#000;
+    --bg-dark:#0b1020;
+    --card-dark:#1b2139;
+    --text-dark:#fff;
+    --muted:rgb(85, 79, 79);
+    --co:red;
+    --accent1:#6a11cb;
+    --accent2:#2575fc;
+    --accent-11:#114ccb;
+    --backg:rgb(272,756,774);
+    --text-light1:#000;
+    --accent-3:#a611cb;
+    --accent-4:#2545fc;
+  }
+  *{box-sizing:border-box;font-family:sans-serif;transition:background .3s,color .3s,transform .4s;}
+  body{
+    margin:0;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    min-height:100vh;
+    padding:10px;    
+    background:linear-gradient(135deg,var(--accent-1),var(--accent-2));
+    color:#fff;
+  }
+  .dark{--co:lime; --muted:rgb(207, 204, 204);
+        --accent1:rgb(78,696,878);
+    --accent2:rgb(67,899,90);
+    --accent-11:rgb(78,696,878);
+    --backg:rgb(6,24,56);
+    --text-light1: white;
+    --accent-3:#2d11cb;
+    --accent-4:#b825fc;
+  } 
+  
+       
+  .app, #accountManager, #loginModal .modalContent {   
+    width:50%;
+    max-widath:470px;
+    background:var(--bg-light);
+    color:var(--text-light);
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.3);
+    margin-top: 40px;
+  }
+    
+
+  body.dark{background:var(--bg-dark);color:var(--text-dark);} 
+  body.dark .app, body.dark #accountManager{background:var(--card-dark);color:var(--text-dark);} 
+  h1{text-align:center;
+  text-shadow: 0px 1px 11px rgba(0, 217, 255, 0.116) ;background:linear-gradient(to top,var(--accent1),var(--accent2));
+  -webkit-background-clip:text;color:transparent;}
+  form{display:flex;flex-direction:column;gap:10px;}
+  input,button{padding:10px;border-radius:8px;border:1px solid #ccc;font-size:15px;}
+  body.dark input{border-color:#444;background:rgb(11,6,40);color:#fff;}
+  button{background:linear-gradient(90deg,var(--accent-1),var(--accent-2));color:#fff;border:none;
+  cursor:pointer;font-weight:bold;}
+  button:hover{opacity:.9;}
+  .summary{margin-top:15px;background:#f7f7f7;border-radius:10px;padding:10px;}
+  body.dark .summary{background:rgb(34, 34, 34);} 
+  .summary p{margin:5px 0;}
+  .summary button{width: 100%; margin-top: 5px;}   
+
+  #profitList{margin-top:15px;}
+  .entry{background:#f3f3f3;border-radius:8px;padding:10px;margin-bottom:10px;display:flex;
+  justify-content:space-between;align-items:center;flex-wrap:wrap;}
+  body.dark .entry{background:#011835;}
+  .entry small{color:var(--muted); flex-basis: 100%; margin-top: 3px;} 
+  .entry > div { flex-grow: 1; min-width: 150px; }
+  .btnDel{background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:8px;cursor:pointer;
+  margin-top: 5px;}
+  
+  .toggle-container{display:none;} 
+
+  #noticeBox {position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.85); color: #fff; padding: 20px 30px; border-radius: 12px;
+    font-weight: bold; font-size: 16px; text-align: center; z-index: 9999; display: none; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.4); max-width: 90%; }
+  body.dark #noticeBox {background:linear-gradient(rgba(9,99 ,99, 0.95),rgb(7,90,97,0.95),
+   rgb(59,99,99,0.95));color: rgb(248, 242, 242);}
+  #noticeBox button{margin-top:12px; border:none; color:white; padding:6px 16px; border-radius:8px; 
+  cursor:pointer; font-weight:bold;}
+
+  #confirmModal, #renameModal, #loginModal {position:fixed;top:0;left:0;width:100%;height:100%; 
+  background:rgba(0,0,0,0.6); display:none; justify-content:center; align-items:center; z-index:9999;}
+  #confirmModal .modalContent, #renameModal .modalContent, #loginModal .modalContent {
+  background:var(--bg-light); padding:20px; 
+  border-radius:12px; text-align:center; max-width:350px;width:90%; color:black;
+  margin-top: 0; /* Override margin-top for fixed position modal */
+  }
+  body.dark #confirmModal .modalContent, body.dark #renameModal .modalContent, body.dark #loginModal .modalContent {
+  background:var(--card-dark);
+  color:var(--text-dark);} 
+  #confirmModal button, #renameModal button, #loginModal button {margin:5px;padding:8px 14px;border:none;border-radius:8px;
+  cursor:pointer;font-weight:bold;}
+  
+  /* Password toggle button styling */
+  #toggleNewPassword, #toggleLoginPassword {
+    transition: none;
+    box-shadow: none !important;
+    background: none; /* Make button background transparent */
+    color: var(--muted);
+  }
+  body.dark #toggleNewPassword, body.dark #toggleLoginPassword {
+    color: var(--text-dark);
+  }
+  
+  #confirmYes{background:#e74c3c;color:#fff;} 
+  #confirmNo{background:#555;color:#fff;}
+    body.dark #confirmNo{background:#aaa;color:#000;} 
+  #renameSave {background: #2ecc71; color: #fff;} 
+  #renameCancel {background: #555; color: #fff;} 
+  body.dark #renameCancel {background:#aaa;color:#000;} 
+
+  .u{margin-top:10px;color:var(--co);} 
+  .da{margin-left: 5px;} 
+  input:focus{border:2px solid lime;outline:none;} 
+  .dark input:focus{border:2px solid cyan;outline:none;}
+
+  #createAccountBtn{background:#2ecc71;} 
+  .account-header {display: flex;justify-content: center;align-items: center;flex-wrap: wrap;} 
+  .account-header h1 {font-size: 24px;flex-basis: 100%;margin-bottom: 5px;}
+    #currentAccount {font-size: 18px;font-weight: bold;color: var(--accent-11);order: 2;
+    text-align: center;}
+     #switchAccountBtn {order: 3;}  
+
+  .account-entry {display: flex;gap: 5px;margin-bottom: 8px;align-items: center;} 
+  .account-entry button.account-select-btn{flex-grow: 1;background: rgb(231,866,840);
+  color: var(--text-light);border: 1px solid rgb(91,234,890);font-weight: normal;margin: 0; 
+    white-space: nowrap; overflow: hidden; text-overflow:ellipsis;}
+    body.dark .account-entry button.account-select-btn{background: var(--card-dark);color: var(--text-dark);
+    border: 1px solid rgb(66, 62, 62);
+    font-weight: normal;}
+     .account-entry button:active,button:hover{background: linear-gradient(90deg, var(--accent-3),var(--accent-4));
+     color: #fff;border: none;} .rename-btn, .delete-btn {padding: 10px;width: 40px;font-size: 15px;
+     border-radius: 8px;margin: 0;flex-shrink: 0;} 
+     .rename-btn {background: #12d9f3;} 
+     .delete-btn {background: #e74c3c;}
+      #renameModal .modalContent input {width: 100%;margin: 10px 0;}
+
+  #menuButton {position: fixed;top: 10px;left: 10px;z-index: 1000;background: var(--card-dark);
+  color: var(--text-dark);border: none;padding: 8px 12px;border-radius: 8px;cursor:
+    pointer;box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);display: none;}
+    body.dark #menuButton {background: var(--bg-light);color: var(--text-light);}
+      #sideMenu {position: fixed;top: 0;left: 0;width: 250px;height: 100%;
+      background: var(--bg-light);color: var(--text-light);z-index: 999;padding: 20px;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);transform: translateX(-100%);
+      transition: transform 0.4s ease-out;}
+       body.dark #sideMenu {background: var(--card-dark);color: var(--text-dark);}
+        #sideMenu.open {transform: translateX(0);} 
+        #menuOverlay {position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(0, 0, 0, 0.5);
+        z-index: 998;display: none;} 
+        #sideMenu h3 {margin-top: 0;border-bottom: 1px solid var(--muted);padding-bottom: 10px;
+        color: var(--accent-1);} 
+        body.dark #sideMenu h3 {color: var(--accent-2);} 
+        #sideMenu .menu-item {display: block;width: 100%;margin-bottom: 10px;padding: 10px;border-radius: 8px;
+        font-weight: bold;text-align: left;background: #eee;color: var(--text-light);}
+         body.dark #sideMenu .menu-item {background: #333;color: var(--text-dark);} 
+          #sideMenu .menu-item:hover {opacity: 1;box-shadow: 0 0 5px rgba(0,0,0,0.2);} 
+           #sideMenu #darkModeBtn, #sideMenu #switchAccountBtn 
+           {background: linear-gradient(90deg,var(--accent-1),var(--accent-2));color: #fff;border: none;}
+            #sideMenu .active-toggle {background: #2ecc71;color: #fff;} 
+            body.dark #sideMenu .active-toggle {background: #00bcd4;color: #000;}
+/* small styles for delete modal */
+#deleteModal .modalContent input {width:100%; padding:10px; margin-top:8px;}
+#deleteConfirmBtn{background:#e74c3c;color:#fff}
+#deleteCancelBtn{background:#555;color:#fff}
+/* Delete Modal Responsive Card */
+#deleteModal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none; /* Hidden until triggered */
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 10px;
+}
+
+#deleteModal .modalContent {
+  background: var(--bg-light);
+  color: var(--text-light);
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+body.dark #deleteModal .modalContent {
+  background: var(--card-dark);
+  color: var(--text-dark);
+}
+
+#deleteModal input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+body.dark #deleteModal input {
+  border-color: #444;
+  background: rgb(11,6,40);
+  color: #fff;
+}
+
+#deleteModal button {
+  flex: 1;
+  min-width: 100px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#deleteConfirmBtn { background: #e74c3c; color: #fff; }
+#deleteCancelBtn { background: #555; color: #fff; }
+body.dark #deleteCancelBtn { background: #aaa; color: #000; }
+
+/* Password toggle button inside delete modal */
+#toggleDeletePassword {
+  color: var(--muted);
+}
+body.dark #toggleDeletePassword { color: var(--text-dark); }
+
+/* Responsive adjustments for mobile screens */
+@media (max-width: 700px){.app, #accountManager, #loginModal .modalContent {   
+    width:100%;
+    max-width:470px;
+    background:var(--bg-light);
+    color:var(--text-light);
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.3);
+    margin-top: 40px;
+  }
+  #deleteModal .modalContent { padding: 15px; }
+  #deleteModal button { width: 100%; margin-top: 5px; }
+}
+/* --- Styling for Change Password Modal (Specific styles) --- */
+
+/* Style for the container to make it appear as a modal */
+#changePasswordModal {
+    display: none; /* Hidden by default, shown via JS when button is clicked */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it is above other elements */
+}
+
+/* Reusing the general modal content style for consistency */
+#changePasswordModal .modalContent {
+    background: var(--backg);
+    padding: 25px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: left;
+    transition: all 0.3s ease;
+    color : var(--text-light1);
+}
+
+/* Style for input fields within the modal */
+#changePasswordModal input[type="password"] {
+    padding: 10px;
+    margin-bottom: 5px; /* Adjust spacing since label is separate */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* Include padding/border in width */
+    font-size: 16px;
+}
+
+/* Style for the eye/lock toggle buttons (to ensure they look nice) */
+#changePasswordModal .modalContent button[type="button"] {
+    cursor: pointer;
+    color: #555;
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* Heading style */
+#changePasswordModal h3g {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #2ecc71; /* Match the save button's accent color */
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+h2{color:var(--);}
+#accountList{display:flex; flex-direction:column; gap:2px; max-height:150px; overflow-y:auto; padding:5px; border-radius:8px; margin-bottom:15px;}
+#changePwdAccountName{text-align: center;}
+
+</style>
+</head>
 <body>
-hey</body>
-<html>s
+
+<div id="menuOverlay"></div>
+<button id="menuButton">☰</button>
+<div id="sideMenu">
+    <h3>Menu & Settings</h3>
+    <button id="darkModeBtn" class="menu-item">🌙 Dark Mode</button>
+    <button id="switchAccountBtnMenu" class="menu-item active-toggle" 
+    style="background:#f39c12; color:#fff;">🔒 Switch Account</button>
+    
+    
+
+
+    <!-- New Change Password Button -->
+    <button id="changePasswordBtnMenu" class="menu-item" style="background:#2ecc71; color:#fff;">🔑 Change Password</button>
+</div>
+<div id="changePasswordModal">
+    <div class="modalContent">
+        <h3 id="changePwdAccountName">Change Password for Account</h3>
+        <p>Enter your current and new password.</p>
+        
+        <label for="currentPasswordInput">Current Password:</label>
+        <div style="position:relative; margin-bottom:10px;">
+            <input type="password" id="currentPasswordInput" placeholder="Current Password" required style="width:100%; padding-right:40px;">
+            <button id="toggleCurrentPassword" type="button" style="position:absolute; top:50%; right:5px; transform:translateY(-50%); padding: 0 5px; width: auto; background: none; border: none;">👁️</button>
+        </div>
+        
+        <label for="newPasswordChangeInput">New Password:</label>
+        <div style="position:relative; margin-bottom:10px;">
+            <input type="password" id="newPasswordChangeInput" placeholder="New Strong Password" required style="width:100%; padding-right:40px;">
+            <button id="toggleNewPasswordChange" type="button" style="position:absolute; top:50%; right:5px; transform:translateY(-50%); padding: 0 5px; width: auto; background: none; border: none;">👁️</button>
+        </div>
+        
+        <label for="confirmNewPasswordInput">Confirm New Password:</label>
+        <div style="position:relative; margin-bottom:10px;">
+            <input type="password" id="confirmNewPasswordInput" placeholder="Confirm New Password" required style="width:100%; padding-right:40px;">
+            <button id="toggleConfirmPassword" type="button" style="position:absolute; top:50%; right:5px; transform:translateY(-50%); padding: 0 5px; width: auto; background: none; border: none;">👁️</button>
+        </div>
+        
+        <button id="saveNewPasswordBtn" style="width: 100%; margin: 10px 0 5px 0; background:#2ecc71; color:#fff;">Save New Password</button>
+        <button id="cancelNewPasswordBtn" style="width: 100%; background: indianred;">Cancel</button>
+    </div>
+</div>
+<div id="loginModal">
+    <div class="modalContent">
+        <h3 id="loginAccountName">Log in to Account</h3>
+        <p>Enter your password to continue.</p>
+        <div style="position:relative; margin-bottom:10px;">
+            <input type="password" id="loginPasswordInput" placeholder="Account Password" style="width:100%; padding-right:40px;">
+            <button id="toggleLoginPassword" type="button" style="position:absolute; top:50%; right:5px; transform:translateY(-50%); padding: 0 5px; width: auto; background: none; border: none;">👁️</button>
+        </div>
+        <button id="loginBtn" style="width: 100%; margin: 10px 0 5px 0;">Log In</button>
+        <button id="cancelLoginBtn" style="width: 100%; background: indianred;">Cancel</button>
+    </div>
+</div>
+
+<!-- Delete account modal requiring password -->
+<div id="deleteModal">
+  <div class="modalContent">
+    <h3>Confirm Account Deletion</h3>
+    <p>Are you sure you want to delete this Account permanently, if so to delete enter Account password below:</p>
+    <div style="position:relative; margin-top:10px;">
+      <input type="password" id="deletePasswordInput" placeholder="Enter account password">
+
+    </div>
+    <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap: wrap;">
+      <button id="deleteConfirmBtn">Delete Account</button>
+      <button id="deleteCancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<div id="accountManager">
+    <h1>Business Account Setup 💼</h1>
+    <p><center>To start, please create Account with strong password which you will able to remember or select your business account to Login. </p></center>
+<hr>
+    <h2>My Accounts:</h2>
+    <div id="accountList"></div>
+    <hr>
+    <h2>
+Add New accounts +</h2>
+    <form id="createAccountForm">
+        <label for="businessName">New Business Name:</label>
+        <input type="text" id="businessName" placeholder="e.g. My T-Shirt Shop">
+
+        <label for="newAccountPassword">Set Password:</label>
+        <div style="position:relative; margin-bottom:10px;">
+            <input type="password" id="newAccountPassword" placeholder="Set a strong password"  style="width:100%; padding-right:40px;">
+            <button id="toggleNewPassword" type="button" style="position:absolute; top:50%; right:5px; transform:translateY(-50%); padding: 0 5px; width: auto; background: none; border: none;">👁️</button>
+        </div>
+        <button type="submit" id="createAccountBtn">Create New Account +</button>
+    </form>
+
+    <button id="selectAccountBtn" style="display:none; margin-top:15px;">Select Account</button>
+</div>
+
+<div class="app" style="display:none;" id="app">
+    <div class="toggle-container">
+    <button id="darkModeBtnOld" class="toggle-btn">🌙 Dark Mode</button>
+  </div>
+  <div class="account-header">
+    <h1>Daily Profit Tracker for</h1>
+<span id="currentAccount"></span>
+    <button id="switchAccountBtnOld" class="toggle-btn"
+      style="background:#f39c12; color:#fff; order: 3; display: none;">Switch Account</button>
+  </div>
+
+  <form id="profitForm">
+    <label>Date:</label>
+    <input type="text" id="profitDate" placeholder="dd/mm/yyyy">
+
+    <label>Item Price:</label>
+    <input type="text" id="itemPrice" placeholder="Enter price per item">
+
+    <label>Number of Items Sold:</label>
+    <input type="text" id="itemNumber" placeholder="Enter number of items">
+
+    <label>Profit Amount (auto):</label>
+    <input type="text" id="profitAmount" placeholder="Auto calculated profit" readonly>
+
+    <label>Items Sold (text):</label>
+    <input type="text" id="itemsSold" placeholder="e.g. 5 shirts or ten apples">
+
+    <label>Note (Important):</label>
+    <input type="text" id="profitNote" placeholder="Important note">
+
+    <button type="submit">Add Profit</button>
+  </form>
+
+  <div class="summary">
+    <p>Total Entries: <span id="totalItems">0</span></p>
+    <p>Total Items Sold: <span id="totalItemsSold">0</span></p>
+    <p><b>Total Profit: <span id="totalProfit" class="u">0</span></b></p>
+    <div style="display:flex; gap: 10px; margin-top: 10px;">
+      <button id="exportBtn" style="flex: 1;">Export CSV</button>
+      <button id="clearBtn" style="flex: 1; background:#e74c3c;">Clear All</button>
+    </div>
+  </div>
+
+  <div id="profitList"></div>
+</div>
+
+<div id="confirmModal">
+  <div class="modalContent">
+    <p id="confirmMessage">Are you sure?</p>
+    <button id="confirmYes">Yes</button>
+    <button id="confirmNo">No</button>
+  </div>
+</div>
+
+<div id="noticeBox"><span id="noticeMsg"></span><br><button id="noticeOk">Okay</button></div>
+
+<div id="renameModal">
+  <div class="modalContent">
+    <h3>Rename Account</h3>
+    <p>Enter a new name for the account:</p>
+    <input type="text" id="newAccountNameInput" placeholder="New Business Name">
+    <button id="renameSave">Save</button>
+    <button id="renameCancel">Cancel</button>
+  </div>
+</div>
+
+<script>
+
+
+// Helper selectors
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+
+
+// --- Password Utilities ---
+async function hashPassword(password){
+    return btoa(password).split('').reverse().join('');
+}
+async function checkPassword(input, stored){
+    return await hashPassword(input) === stored;
+}
+
+// --- State ---
+const state = {
+    currentAccount: {
+        name: localStorage.getItem('currentAccountName') || null,
+        isLoggedIn: false
+    },
+    accounts: JSON.parse(localStorage.getItem('businessAccounts')||'[]'),
+    profits: [],
+    pendingAction: null,
+    accountToRename: null,
+    accountToDelete: null,
+    accountToLogin: null
+};
+
+// --- Side Menu ---
+const menuButton = $('#menuButton');
+const sideMenu = $('#sideMenu');
+const menuOverlay = $('#menuOverlay');
+const switchAccountBtnMenu = $('#switchAccountBtnMenu');
+const changePasswordBtnMenu = $('#changePasswordBtnMenu');
+
+function toggleSideMenu(){
+    sideMenu.classList.toggle('open');
+    menuOverlay.style.display = sideMenu.classList.contains('open') ? 'block':'none';
+}
+menuButton.onclick = toggleSideMenu;
+menuOverlay.onclick = toggleSideMenu;
+switchAccountBtnMenu.onclick = ()=>{
+    toggleSideMenu();
+    state.currentAccount.isLoggedIn = false;
+    showAccountManager();
+};
+
+// --- Storage Helpers ---
+function getProfitKey(name){ return name ? `profits_${name.replace(/[^a-z0-9]/gi,'_').toLowerCase()}` : null; }
+function saveAccounts(){
+    localStorage.setItem('businessAccounts', JSON.stringify(state.accounts));
+    localStorage.setItem('currentAccountName', state.currentAccount.name);
+}
+
+// --- Account Logic ---
+function setActiveAccount(name){
+    const account = state.accounts.find(a=>a.name===name);
+    if(!account) return;
+    state.currentAccount.name = name;
+    state.currentAccount.isLoggedIn = false;
+    saveAccounts();
+    if(account.passwordHash){
+        showLoginModal(name);
+    } else {
+        state.currentAccount.isLoggedIn = true;
+        loadProfits();
+        renderAccounts();
+        $('#currentAccount').textContent = name;
+        showApp();
+    }
+}
+
+function loadProfits(){
+    if(state.currentAccount.name && state.currentAccount.isLoggedIn){
+        const data = localStorage.getItem(getProfitKey(state.currentAccount.name));
+        state.profits = data ? JSON.parse(data):[];
+    } else state.profits=[];
+    render();
+}
+function saveProfits(){
+    if(state.currentAccount.name && state.currentAccount.isLoggedIn){
+        localStorage.setItem(getProfitKey(state.currentAccount.name), JSON.stringify(state.profits));
+    }
+}
+
+// --- Account Rendering ---
+function renderAccounts(){
+    const list = $('#accountList');
+    list.innerHTML = '';
+    if(state.accounts.length) $('#selectAccountBtn').style.display='block';
+    else $('#selectAccountBtn').style.display='none';
+
+    state.accounts.forEach(acc=>{
+        const entry = document.createElement('div');
+        entry.className='account-entry';
+
+        const selectBtn = document.createElement('button');
+        selectBtn.textContent =`Log in to ${acc.name} Account` + ((state.currentAccount.name===acc.name
+         && state.currentAccount.isLoggedIn) ? ' (Active)':'');
+        selectBtn.className='account-select-btn';
+        if(state.currentAccount.name===acc.name && state.currentAccount.isLoggedIn)
+         selectBtn.classList.add('active');
+        selectBtn.onclick=()=>setActiveAccount(acc.name);
+
+        const renameBtn = document.createElement('button');
+        renameBtn.textContent='✏️'; renameBtn.className='rename-btn toggle-btn';
+        renameBtn.title=`Rename ${acc.name} Account`;
+        renameBtn.onclick=e=>{ e.stopPropagation(); startRename(acc.name); };
+
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent='🗑️'; deleteBtn.className='delete-btn toggle-btn';
+        deleteBtn.title=`Delete ${acc.name} Account`;
+        deleteBtn.onclick=e=>{ e.stopPropagation(); confirmDelete(acc.name); };
+
+        entry.appendChild(selectBtn);
+        entry.appendChild(renameBtn);
+        entry.appendChild(deleteBtn);
+        list.appendChild(entry);
+    });
+}
+
+// --- Password Toggle ---
+function togglePassword(inputId, btnId){
+    const inp = $(inputId); const btn = $(btnId);
+    if(!inp || !btn) return;
+    btn.onclick=()=>{
+        const type = inp.type==='password' ? 'text':'password';
+        inp.type=type;
+        btn.textContent= type==='password'?'👁️':'🔒';
+    };
+}
+['#newAccountPassword','#loginPasswordInput','#currentPasswordInput','#newPasswordChangeInput','#confirmNewPasswordInput'].forEach(id=>{
+    const btnId = id==='#newAccountPassword'?'#toggleNewPassword':
+                  id==='#loginPasswordInput'?'#toggleLoginPassword':
+                  id==='#currentPasswordInput'?'#toggleCurrentPassword':
+                  id==='#newPasswordChangeInput'?'#toggleNewPasswordChange':
+                  '#toggleConfirmPassword';
+    togglePassword(id, btnId);
+});
+
+// --- Rename ---
+function startRename(oldName){
+    state.accountToRename = oldName;
+    $('#newAccountNameInput').value=oldName;
+    $('#renameModal').style.display='flex';
+}
+$('#renameSave').onclick = ()=>{
+    const oldName=state.accountToRename;
+    const newName=$('#newAccountNameInput').value.trim();
+    if(!newName){showNotice("New name cannot be empty.");return;}
+    if(state.accounts.some(a=>a.name===newName)){showNotice("Account exists.");return;}
+    const acc = state.accounts.find(a=>a.name===oldName);
+    if(acc) acc.name=newName;
+    const oldKey=getProfitKey(oldName), newKey=getProfitKey(newName);
+    const data = localStorage.getItem(oldKey);
+    if(data){ localStorage.setItem(newKey,data); localStorage.removeItem(oldKey);}
+    if(state.currentAccount.name===oldName) {state.currentAccount.name=newName; $('#currentAccount').textContent=newName;}
+    saveAccounts(); renderAccounts();
+    $('#renameModal').style.display='none'; state.accountToRename=null;
+    showNotice(`Account renamed to "${newName}" `);
+};
+$('#renameCancel').onclick = ()=>{ $('#renameModal').style.display='none'; state.accountToRename=null; hideNotice(); };
+
+
+// --- Delete ---
+function confirmDelete(name){
+    state.accountToDelete=name;
+    $('#deletePasswordInput').value='';
+    $('#deleteModal').style.display='flex';
+}
+$('#deleteConfirmBtn').onclick=async()=>{
+    const pwd = $('#deletePasswordInput').value||'';
+    const acc = state.accounts.find(a=>a.name===state.accountToDelete);
+    if(!acc){ showNotice('Account not found.'); $('#deleteModal').style.display='none'; return;}
+    const ok = await checkPassword(pwd, acc.passwordHash);
+    if(ok){ $('#deleteModal').style.display='none'; executeDeleteConfirmed(); }
+    else showNotice('Incorrect password.');
+};
+function executeDeleteConfirmed(){
+    const name=state.accountToDelete;
+    if(!name) return;
+    localStorage.removeItem(getProfitKey(name));
+    state.accounts = state.accounts.filter(a=>a.name!==name);
+    if(state.currentAccount.name===name){
+        state.currentAccount.name=state.accounts.length?state.accounts[0].name:null;
+        state.currentAccount.isLoggedIn=false;
+        loadProfits();
+        if(state.currentAccount.name) showApp(); else showAccountManager();
+    }
+    saveAccounts(); renderAccounts(); state.accountToDelete=null;
+    showNotice(`Account "${name}" deleted 🗑️`);
+}
+$('#deleteCancelBtn').onclick = ()=>{ state.accountToDelete=null; $('#deleteModal').style.display='none'; hideNotice(); };
+
+
+// --- Create Account ---
+$('#createAccountForm').onsubmit=async e=>{
+    e.preventDefault();
+    const name=$('#businessName').value.trim();
+    const pwd=$('#newAccountPassword').value.trim();
+    if(!name||!pwd){showNotice("Name and password required to create new Account.");return;}
+    if(state.accounts.some(a=>a.name===name)){showNotice("Account exists.");return;}
+    const hash=await hashPassword(pwd);
+    state.accounts.push({name:name,passwordHash:hash});
+    $('#businessName').value=''; $('#newAccountPassword').value='';
+    state.currentAccount.isLoggedIn=true;
+    setActiveAccount(name);
+    showNotice(`Account "${name}" created!`);
+    renderAccounts();
+};
+$('#selectAccountBtn').onclick=()=>{ state.currentAccount.name?setActiveAccount(state.currentAccount.name):showNotice("Select account first."); };
+
+// --- Login Modal ---
+function showLoginModal(name){
+    state.accountToLogin=name;
+    $('#loginAccountName').textContent=`Log in to ${name}`;
+    $('#loginPasswordInput').value='';
+    $('#loginModal').style.display='flex';
+}
+$('#loginBtn').onclick=async()=>{
+    const pwd=$('#loginPasswordInput').value.trim();
+    const name=state.accountToLogin;
+    if(!pwd||!name){ showNotice("Enter password"); return;}
+    const acc = state.accounts.find(a=>a.name===name);
+    if(!acc){ showNotice("Account not found"); return;}
+    const ok = await checkPassword(pwd, acc.passwordHash);
+    if(ok){
+        state.currentAccount.name=name;
+        state.currentAccount.isLoggedIn=true;
+        loadProfits(); renderAccounts();
+        $('#loginModal').style.display='none'; state.accountToLogin=null;
+        showApp(); showNotice(`🎊Congratulations Login was successful! 💯`);
+    } else showNotice("❗Incorrect password.");
+};
+$('#cancelLoginBtn').onclick = ()=>{
+    $('#loginModal').style.display='none';
+    state.accountToLogin=null;
+    showAccountManager();
+    hideNotice();
+};
+
+
+// --- Change Password ---
+changePasswordBtnMenu.onclick=()=>{
+    toggleSideMenu();
+    if(!state.currentAccount.isLoggedIn){ showNotice("Login required."); return;}
+    $('#currentPasswordInput').value=''; $('#newPasswordChangeInput').value=''; $('#confirmNewPasswordInput').value='';
+    $('#changePwdAccountName').textContent=`Change Password for ${state.currentAccount.name}`;
+    $('#changePasswordModal').style.display='flex';
+};
+$('#cancelNewPasswordBtn').onclick=()=>{ $('#changePasswordModal').style.display='none'; hideNotice(); };
+
+$('#saveNewPasswordBtn').onclick=async()=>{
+    const curr=$('#currentPasswordInput').value.trim();
+    const np=$('#newPasswordChangeInput').value.trim();
+    const cp=$('#confirmNewPasswordInput').value.trim();
+    if(!curr||!np||!cp){ showNotice("All  fields required to change password."); return;}
+    if(np!==cp){ showNotice("Passwords do not match."); return;}
+    if(curr===np){ showNotice("New must differ."); return;}
+    const acc = state.accounts.find(a=>a.name===state.currentAccount.name);
+    if(!acc){ showNotice("Account missing."); return;}
+    const ok=await checkPassword(curr, acc.passwordHash);
+    if(ok){ acc.passwordHash=await hashPassword(np); saveAccounts(); $('#changePasswordModal').style.display='none'; showNotice("Password changed 🔐"); }
+    else showNotice("Incorrect current password.");
+};
+
+// --- Profit Logic ---
+function parseNumberInput(val){ if(!val) return NaN; val=val.toString().trim(); if(val.includes('/')){ const p=val.split('/').map(Number); if(p.length===2 && !isNaN(p[0]) && !isNaN(p[1]) && p[1]!==0) return p[0]/p[1];} const n=parseFloat(val.replace(/,/g,'')); return isNaN(n)?NaN:n; }
+function parseItemsSold(v){ return v.trim()||"0"; }
+function calculateProfit(){
+    const price=parseNumberInput($('#itemPrice').value);
+    const count=parseNumberInput($('#itemNumber').value);
+    $('#profitAmount').value = (!isNaN(price)&&!isNaN(count))?(price*count).toFixed(2):'';
+}
+$('#itemPrice').addEventListener('input',calculateProfit);
+$('#itemNumber').addEventListener('input',calculateProfit);
+
+function validateForm(){
+    if(!state.currentAccount.isLoggedIn){ showNotice("Login to add profit."); return false; }
+    const fields=[{id:'#profitDate',name:'Date'},{id:'#itemPrice',name:'Item Price'},{id:'#itemNumber',name:'Number'},{id:'#profitAmount',name:'Profit Amount'},{id:'#itemsSold',name:'Items Sold'},{id:'#profitNote',name:'Note'}];
+    for(const f of fields){ if(!$(f.id).value.trim()){ showNotice(`Fill ${f.name} before you add Profit`); return false;} }
+    return true;
+}
+function parseDateFlexible(d){
+    if(!d) return null;
+    const parts=d.split('/');
+    if(parts.length===3){ const [day,month,year]=parts.map(Number); if(!isNaN(day)&&!isNaN(month)&&!isNaN(year)) return new Date(year,month-1,day); }
+    const iso = new Date(d);
+    if(!isNaN(iso)) return iso;
+    return null;
+}''
+
+$('#profitForm').onsubmit=e=>{
+    e.preventDefault(); if(!validateForm()) return;
+    const d=parseDateFlexible($('#profitDate').value.trim())||new Date();
+    const date=`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    const amount=$('#profitAmount').value.trim();
+    const items=parseItemsSold($('#itemsSold').value);
+    const note=$('#profitNote').value.trim();
+    const itemNum=$('#itemNumber').value.trim();
+    const itemPrice=$('#itemPrice').value.trim();
+    const fullTime=new Date();
+    const timeDisplay=fullTime.toLocaleString();
+    const timeShort=fullTime.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit',hour12:true});
+    state.profits.push({date,amount,items,note,itemNum,itemPrice,timeDisplay,timeShort});
+    saveProfits(); render(); showNotice("Profit added 📥");
+    ['#profitDate','#profitAmount','#itemsSold','#profitNote','#itemNumber','#itemPrice'].forEach(id=>$(id).value='');
+};
+
+// --- Render Profits ---
+function formatCurrency(n){ return Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function render(){
+    const list = $('#profitList'); list.innerHTML='';
+    if(!state.profits.length){ list.innerHTML=`<p style="text-align:center;color:gray;">No profits yet</p>`; }
+    const sorted = state.profits.slice().sort((a,b)=>+parseDateFlexible(b.date)-+parseDateFlexible(a.date));
+
+    sorted.forEach(p=>{
+        const div=document.createElement('div'); div.className='entry';
+        div.innerHTML=`<div>
+        <span>${p.amount}</span>
+        <small class="da">${p.date}</small>
+        <br><small>Added at: ${p.timeDisplay}</small>
+        <br><small>Items: ${p.items} (Number: ${p.itemNum})</small>
+        <br><small>Price: ${p.itemPrice}</small>
+        ${p.note?`<br><small>${p.note}</small>`:''}
+        </div>
+        <button class="btnDel">Remove</button>`;
+        div.querySelector('.btnDel').onclick=()=>{ showConfirm('Do you want to Delete this entry?', ()=>{
+            const i=state.profits.findIndex(x=>x===p); if(i>-1){ state.profits.splice(i,1); saveProfits(); render(); showNotice('Removed ❌ '); }
+        });};
+        list.appendChild(div);
+    });
+    const totalProfit=state.profits.reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+    const totalItems=state.profits.reduce((s,p)=>s+(parseFloat(p.itemNum)||0),0);
+    $('#totalProfit').innerText=formatCurrency(totalProfit);
+    $('#totalItemsSold').innerText=totalItems;
+    $('#totalItems').innerText=state.profits.length;
+}
+
+// --- Confirm Modal ---
+function showConfirm(msg, cb){ $('#confirmMessage').innerHTML=msg; state.pendingAction=cb; $('#confirmModal').style.display='flex'; }
+$('#confirmYes').onclick=()=>{ if(state.pendingAction) state.pendingAction(); state.pendingAction=null; $('#confirmModal').style.display='none'; };
+$('#confirmNo').onclick=()=>{ state.pendingAction=null; $('#confirmModal').style.display='none'; };
+
+// --- Clear / Export ---
+$('#clearBtn').onclick=()=>{ if(!state.currentAccount.isLoggedIn){ showNotice("Login required."); return;}
+showConfirm(`Clear all data for <b>${state.currentAccount.name}</b>?`, ()=>{ state.profits=[]; saveProfits(); render(); showNotice('Cleared 🧹'); }); };
+$('#exportBtn').onclick=()=>{
+    if(!state.currentAccount.isLoggedIn){ showNotice("Login required."); return;}
+    if(!state.profits.length){ showNotice("Add data first."); return;}
+    const sorted = state.profits.slice().sort((a,b)=>+parseDateFlexible(a.date)-+parseDateFlexible(b.date));
+    const rows=[["Date","Filled at","Price","Items Sold","Number","Profit","Note"]];
+    sorted.forEach(p=>rows.push([p.date,p.timeShort,p.itemPrice,p.items,p.itemNum,p.amount,p.note]));
+    const totalProfit=state.profits.reduce((s,p)=>s+(parseFloat(p.amount)||0),0);
+    const totalItems=state.profits.reduce((s,p)=>s+(parseFloat(p.itemNum)||0),0);
+    rows.push(["TOTAL","","","",totalItems,totalProfit.toFixed(2),""]);
+    const csv=rows.map(r=>r.map(x=>`"${x.toString().replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url;
+    a.download=(state.currentAccount.name||'account').replace(/[^a-z0-9]/gi,'_')+'_profits.csv';
+    a.click(); URL.revokeObjectURL(url); showNotice('CSV exported 📄');
+};
+
+// --- Theme ---
+const darkBtn = $('#darkModeBtn');
+function applyTheme(){ const isDark=localStorage.getItem('darkMode')==='true';
+ document.body.classList.toggle('dark',isDark); darkBtn.textContent=isDark?'☀️ Light Mode':'🌙 Dark Mode'; }
+darkBtn.onclick=()=>{ localStorage.setItem('darkMode',!document.body.classList.contains('dark'));
+ applyTheme(); toggleSideMenu(); };
+
+// --- UI ---
+function showAccountManager(){ state.currentAccount.isLoggedIn=false; $('#accountManager').style.display='block'; document.querySelector('.app').style.display='none'; menuButton.style.display='none'; renderAccounts(); }
+function showApp(){ if(!state.currentAccount.name||!state.currentAccount.isLoggedIn){ showAccountManager(); return;} $('#accountManager').style.display='none'; document.querySelector('.app').style.display='block'; $('#currentAccount').textContent=state.currentAccount.name; menuButton.style.display='block'; }
+function showNotice(msg){
+    $('#noticeMsg').innerHTML = msg;
+    $('#noticeBox').style.display = 'block';
+    // Clear any existing timeout before setting a new one
+    if (window.noticeTimeout) clearTimeout(window.noticeTimeout);
+    // Auto-hide notice after 4 seconds
+    window.noticeTimeout = setTimeout(() => {
+        $('#noticeBox').style.display = 'none';
+    }, 4000);
+}
+
+// Helper to manually hide notice when user cancels
+function hideNotice(){
+    $('#noticeBox').style.display = 'none';
+}
+
+$('#noticeOk').onclick=()=>$('#noticeBox').style.display='none';
+
+// --- Init ---
+window.addEventListener('load', ()=>{
+    ['#profitDate','#profitAmount','#itemsSold','#profitNote','#itemNumber','#itemPrice'].forEach(id=>{ if($(id)) $(id).value=''; });
+    applyTheme(); renderAccounts();
+    if(state.currentAccount.name && state.accounts.some(a=>a.name===state.currentAccount.name)){
+        showLoginModal(state.currentAccount.name);
+    } else showAccountManager();
+});
+
+</script>
+</body>
+</html>
