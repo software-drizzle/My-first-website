@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Student Registration System</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    body {
+      background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .app {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      width: 100%;
+      max-width: 950px;
+      padding: 35px;
+      border-radius: 24px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 35px;
+      animation: slideIn 0.8s ease-out;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      color: #2d3748;
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .greeting {
+      color: #718096;
+      font-size: 15px;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 16px;
+      min-width: 140px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px) scale(1.03);
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+    }
+
+    .stat-card .number {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .stat-card .label {
+      font-size: 13px;
+      opacity: 0.95;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #e2e8f0;
+      overflow-x: auto;
+    }
+
+    .tab {
+      padding: 14px 28px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 15px;
+      color: #718096;
+      transition: all 0.3s ease;
+      margin-bottom: -2px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .tab::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 50%;
+      width: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      transition: all 0.3s ease;
+      transform: translateX(-50%);
+    }
+
+    .tab:hover {
+      color: #667eea;
+    }
+
+    .tab.active {
+      color: #667eea;
+      font-weight: 700;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 14px;
+      color: #4a5568;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      padding: 13px 16px;
+      border-radius: 10px;
+      border: 2px solid #e2e8f0;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      background: #fff;
+      color: #2d3748;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      transform: translateY(-1px);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    button {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .button-group button {
+      flex: 1;
+    }
+
+    #result {
+      margin-top: 25px;
+      padding: 18px 22px;
+      border-radius: 12px;
+      font-size: 15px;
+      display: none;
+      border-left: 4px solid;
+      font-weight: 500;
+    }
+
+    #result.show {
+      display: block;
+    }
+
+    .error {
+      background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+      color: #c53030;
+      border-color: #fc8181;
+    }
+
+    .success {
+      background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+      color: #276749;
+      border-color: #48bb78;
+    }
+
+    .info {
+      background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+      color: #2c5282;
+      border-color: #4299e1;
+    }
+
+    /* Image Upload Styles */
+    .image-preview-container {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto;
+      border: 3px dashed #cbd5e0;
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #f7fafc;
+    }
+
+    .image-preview-container:hover {
+      border-color: #667eea;
+      background: #edf2f7;
+      transform: scale(1.02);
+    }
+
+    .image-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 20px;
+      text-align: center;
+      color: #718096;
+    }
+
+    .image-placeholder svg {
+      margin-bottom: 12px;
+      color: #a0aec0;
+    }
+
+    .image-placeholder p {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #4a5568;
+    }
+
+    .image-placeholder span {
+      font-size: 12px;
+      color: #a0aec0;
+    }
+
+    .image-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .remove-image-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      background: rgba(229, 62, 62, 0.95);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .remove-image-btn:hover {
+      background: #c53030;
+      transform: scale(1.1) rotate(90deg);
+    }
+
+    .remove-image-btn svg {
+      color: white;
+    }
+
+    /* ID Card Styles */
+    .id-card-preview {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 16px;
+      padding: 25px;
+      color: white;
+      margin-top: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .id-card-header {
+      text-align: center;
+      border-bottom: 2px solid rgba(255,255,255,0.3);
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+
+    .id-card-header h3 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .id-card-header p {
+      margin: 5px 0 0 0;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .id-card-body {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .id-card-photo {
+      width: 120px;
+      height: 120px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 3px solid white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      flex-shrink: 0;
+    }
+
+    .id-card-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .id-card-info {
+      flex: 1;
+    }
+
+    .id-card-info p {
+      margin: 8px 0;
+      font-size: 14px;
+    }
+
+    .id-card-footer {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 2px solid rgba(255,255,255,0.3);
+      text-align: center;
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .id-card-back {
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      border-radius: 16px;
+      padding: 25px;
+      margin-top: 20px;
+      color: #2d3748;
+      border: 2px solid #cbd5e0;
+    }
+
+    .back-header {
+      font-size: 18px;
+      font-weight: 700;
+      color: #e53e3e;
+      text-align: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #fc8181;
+    }
+
+    .id-card-back p {
+      margin: 10px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .id-card-back strong {
+      color: #667eea;
+    }
+
+    .no-print {
+      display: block;
+    }
+
+    /* Student List */
+    .student-list {
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .student-card {
+      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+      padding: 20px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+      border-left: 5px solid #667eea;
+      transition: all 0.3s ease;
+    }
+
+    .student-card:hover {
+      transform: translateX(5px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+    }
+
+    .student-card .student-id {
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 12px;
+      font-size: 16px;
+      display: inline-block;
+      background: rgba(102, 126, 234, 0.1);
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+
+    .student-card .student-info {
+      font-size: 14px;
+      color: #4a5568;
+      margin-bottom: 15px;
+      line-height: 1.8;
+    }
+
+    .student-card .student-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .student-card button {
+      padding: 8px 16px;
+      font-size: 13px;
+      flex: 1;
+      min-width: 80px;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .search-bar input {
+      flex: 1;
+    }
+
+    .filter-section {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    .filter-section select {
+      flex: 1;
+      min-width: 160px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 550px;
+      width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      color: #2d3748;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      font-size: 28px;
+      cursor: pointer;
+      color: #718096;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .close-btn:hover {
+      background: #fff;
+      color: #e53e3e;
+      border-color: #fc8181;
+      transform: rotate(90deg);
+    }
+
+    .password-strength {
+      height: 5px;
+      border-radius: 3px;
+      margin-top: 8px;
+      transition: all 0.4s ease;
+      background: #e2e8f0;
+    }
+
+    .strength-weak {
+      background: linear-gradient(90deg, #fc8181, #e53e3e);
+      width: 33%;
+    }
+
+    .strength-medium {
+      background: linear-gradient(90deg, #f6ad55, #ed8936);
+      width: 66%;
+    }
+
+    .strength-strong {
+      background: linear-gradient(90deg, #48bb78, #38a169);
+      width: 100%;
+    }
+
+    .print-btn {
+      background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+      margin-top: 15px;
+      width: 100%;
+    }
+
+    .print-btn:hover {
+      box-shadow: 0 6px 20px rgba(56, 161, 105, 0.4);
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      
+      .id-card-preview, .id-card-preview * {
+        visibility: visible;
+      }
+      
+      .id-card-preview {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: none;
+        page-break-after: always;
+      }
+
+      .id-card-back {
+        page-break-before: always;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        max-width: 500px;
+        background: white !important;
+        border: 2px solid #000;
+      }
+
+      .back-header {
+        color: #000 !important;
+        border-bottom-color: #000 !important;
+      }
+
+      .id-card-back p {
+        color: #000 !important;
+      }
+
+      .id-card-back strong {
+        color: #000 !important;
+      }
+
+      .no-print {
+        display: block !important;
+        visibility: visible !important;
+      }
+      
+      .print-btn, .btn-danger, .button-group {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app {
+        padding: 25px 20px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .student-card .student-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h2>🎓 Advanced Student Registration System</h2>
+    <div class="greeting" id="greeting"></div>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="number" id="totalStudents">0</div>
+        <div class="label">Total Students</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="todayRegistrations">0</div>
+        <div class="label">Today's Registrations</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('register')">📝 Register</button>
+    <button class="tab" onclick="switchTab('search')">🔍 Search</button>
+    <button class="tab" onclick="switchTab('manage')">📋 Manage All</button>
+    <button class="tab" onclick="switchTab('export')">📊 Export Data</button>
+  </div>
+
+  <!-- REGISTER TAB -->
+  <div id="register" class="tab-content active">
+    <form id="registrationForm" onsubmit="handleRegistration(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="name" placeholder="John Doe" required>
+        </div>
+
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" id="email" placeholder="john@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="tel" id="phone" placeholder="1234567890" required>
+        </div>
+
+        <div class="form-group">
+          <label>Date of Birth *</label>
+          <input type="date" id="dob" required>
+        </div>
+
+        <div class="form-group">
+          <label>Course *</label>
+          <select id="course" required>
+            <option value="">Select Course</option>
+            <option value="CS">Computer Science (CS)</option>
+            <option value="IT">Information Technology (IT)</option>
+            <option value="SE">Software Engineering (SE)</option>
+            <option value="DS">Data Science (DS)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Sponsorship Type *</label>
+          <select id="sponsorship" required>
+            <option value="">Select Sponsorship</option>
+            <option value="Government">🏛️ Government Sponsored</option>
+            <option value="Private">💼 Private Sponsored</option>
+            <option value="Self">👤 Self Sponsored</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Gender *</label>
+          <select id="gender" required>
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Blood Group</label>
+          <select id="bloodGroup">
+            <option value="">Select Blood Group (Optional)</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Address *</label>
+          <textarea id="address" placeholder="Enter full address" required></textarea>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Profile Picture *</label>
+          <div class="image-preview-container" id="imagePreviewContainer">
+            <div class="image-placeholder" id="imagePlaceholder">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              <p>Click to upload photo</p>
+              <span>JPG, PNG or GIF (Max 2MB)</span>
+            </div>
+            <img id="imagePreview" class="image-preview" style="display: none;">
+            <button type="button" class="remove-image-btn" id="removeImageBtn" style="display: none;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <input type="file" id="profilePicture" accept="image/*" style="display: none;" required>
+        </div>
+
+        <div class="form-group">
+          <label>Password *</label>
+          <input type="password" id="password" placehold
