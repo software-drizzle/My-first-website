@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WANDR — Your Ultimate Tour Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #F2EAD8;
+    --clay: #C4622D;
+    --night: #0F0D0A;
+    --forest: #2D4A3E;
+    --gold: #D4A847;
+    --mist: #8B9BAA;
+    --light: #FAF8F4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--night);
+    color: var(--sand);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom Cursor */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--clay);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s ease, background 0.2s;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--gold);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transition: all 0.3s ease;
+    mix-blend-mode: difference;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 24px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(15,13,10,0.95), transparent);
+    backdrop-filter: blur(4px);
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-decoration: none;
+  }
+  .logo span { color: var(--clay); }
+
+  nav ul { list-style: none; display: flex; gap: 36px; }
+  nav a {
+    color: var(--sand);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 500;
+    transition: color 0.2s;
+    position: relative;
+  }
+  nav a::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0;
+    width: 0; height: 1px;
+    background: var(--clay);
+    transition: width 0.3s;
+  }
+  nav a:hover { color: var(--gold); }
+  nav a:hover::after { width: 100%; }
+
+  .nav-cta {
+    background: var(--clay);
+    color: var(--sand) !important;
+    padding: 10px 24px;
+    border-radius: 2px;
+    font-weight: 500 !important;
+    letter-spacing: 2px;
+    transition: background 0.2s !important;
+  }
+  .nav-cta:hover { background: var(--gold) !important; color: var(--night) !important; }
+  .nav-cta::after { display: none !important; }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: 100px 40px 80px;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(196,98,45,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(45,74,62,0.25) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(212,168,71,0.08) 0%, transparent 40%);
+    animation: bgPulse 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes bgPulse {
+    0% { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.05); }
+  }
+
+  .hero-grain {
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--clay);
+    margin-bottom: 24px;
+    animation: fadeUp 1s ease forwards;
+    opacity: 0;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(64px, 12vw, 140px);
+    font-weight: 900;
+    line-height: 0.88;
+    margin-bottom: 32px;
+    animation: fadeUp 1s ease 0.2s forwards;
+    opacity: 0;
+  }
+  .hero-title .italic { font-style: italic; color: var(--clay); }
+  .hero-title .outline {
+    -webkit-text-stroke: 2px var(--sand);
+    color: transparent;
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--mist);
+    max-width: 520px;
+    line-height: 1.7;
+    margin-bottom: 48px;
+    animation: fadeUp 1s ease 0.4s forwards;
+    opacity: 0;
+  }
+
+  .hero-btns {
+    display: flex; gap: 16px; justify-content: center;
+    animation: fadeUp 1s ease 0.6s forwards;
+    opacity: 0;
+  }
+
+  .btn-primary {
+    background: var(--clay);
+    color: var(--sand);
+    padding: 16px 40px;
+    border: none;
+    border-radius: 2px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: none;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+    display: inline-block;
+  }
+  .btn-primary:hover { background: var(--gold); color: var(--night); transform: translateY(-2px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--sand);
+    padding: 16px 40px;
+    border: 1px solid rgba(242,234,216,0.3);
+    border-radius: 2px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: none;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+    display: inline-block;
+  }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-2px); }
+
+  .scroll-indicator {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    animation: fadeUp 1s ease 1s forwards; opacity: 0;
+  }
+  .scroll-indicator span { font-size: 10px; letter-spacing: 4px; color: var(--mist); text-transform: uppercase; }
+  .scroll-line {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, var(--clay), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.2); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    background: var(--clay);
+    padding: 28px 48px;
+    display: flex; justify-content: center; gap: 80px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--sand);
+    display: block;
+  }
+  .stat-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: rgba(242,234,216,0.6); }
+
+  /* SEARCH SECTION */
+  #search {
+    padding: 100px 48px;
+    background: var(--light);
+    color: var(--night);
+    position: relative;
+    overflow: hidden;
+  }
+  #search::before {
+    content: 'EXPLORE';
+    position: absolute;
+    font-family: 'Playfair Display', serif;
+    font-size: 200px;
+    font-weight: 900;
+    color: rgba(15,13,10,0.04);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--clay);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 48px;
+    color: var(--night);
+  }
+  .section-title .accent { color: var(--clay); font-style: italic; }
+
+  .search-box {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+    text-align: center;
+  }
+
+  .search-tabs {
+    display: flex; gap: 0; margin-bottom: 0; justify-content: center;
+  }
+  .tab {
+    padding: 12px 28px;
+    font-size: 12px; letter-spacing: 2px;
+    text-transform: uppercase; font-weight: 500;
+    cursor: none; border: 1px solid rgba(15,13,10,0.15);
+    background: transparent; color: var(--mist);
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tab.active { background: var(--night); color: var(--sand); border-color: var(--night); }
+  .tab:hover:not(.active) { background: rgba(15,13,10,0.06); }
+
+  .search-input-wrap {
+    display: flex;
+    border: 2px solid var(--night);
+    overflow: hidden;
+    background: white;
+  }
+  .search-input {
+    flex: 1; padding: 20px 28px;
+    font-size: 16px; border: none; outline: none;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--night);
+    background: transparent;
+  }
+  .search-input::placeholder { color: var(--mist); }
+  .search-btn {
+    background: var(--night); color: var(--sand);
+    border: none; padding: 0 36px;
+    font-size: 12px; letter-spacing: 2px;
+    text-transform: uppercase; cursor: none;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+  .search-btn:hover { background: var(--clay); }
+
+  .search-tags {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; justify-content: center;
+  }
+  .tag {
+    padding: 8px 18px; border: 1px solid rgba(15,13,10,0.2);
+    border-radius: 100px; font-size: 12px; cursor: none;
+    color: var(--night); letter-spacing: 1px;
+    transition: all 0.2s;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tag:hover { background: var(--clay); color: white; border-color: var(--clay); }
+
+  /* DESTINATIONS */
+  #destinations {
+    padding: 100px 48px;
+    background: var(--night);
+  }
+
+  .section-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 56px;
+  }
+
+  .destinations-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 320px 240px;
+    gap: 16px;
+  }
+
+  .dest-card {
+    position: relative; overflow: hidden;
+    cursor: none; border-radius: 2px;
+  }
+  .dest-card.large { grid-row: span 2; }
+
+  .dest-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+    display: block;
+  }
+
+  .dest-card:hover .dest-img { transform: scale(1.08); }
+
+  .dest-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(15,13,10,0.9) 0%, rgba(15,13,10,0.2) 50%, transparent 100%);
+    padding: 28px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    transition: background 0.3s;
+  }
+  .dest-card:hover .dest-overlay {
+    background: linear-gradient(to top, rgba(196,98,45,0.8) 0%, rgba(15,13,10,0.4) 60%, transparent 100%);
+  }
+
+  .dest-country { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+  .dest-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 700; margin-bottom: 8px;
+  }
+  .dest-card.large .dest-name { font-size: 48px; }
+  .dest-meta { font-size: 12px; color: rgba(242,234,216,0.6); }
+  .dest-arrow {
+    position: absolute; top: 24px; right: 24px;
+    width: 40px; height: 40px;
+    background: var(--gold); color: var(--night);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    transform: translateY(-60px); opacity: 0;
+    transition: all 0.3s;
+  }
+  .dest-card:hover .dest-arrow { transform: translateY(0); opacity: 1; }
+
+  /* FEATURES / HOW IT WORKS */
+  #features {
+    padding: 100px 48px;
+    background: var(--sand);
+    color: var(--night);
+  }
+
+  .features-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    margin-top: 60px;
+  }
+
+  .feature-list { display: flex; flex-direction: column; gap: 0; }
+  .feature-item {
+    padding: 32px 0;
+    border-bottom: 1px solid rgba(15,13,10,0.1);
+    display: flex; gap: 24px;
+    cursor: none;
+    transition: padding-left 0.3s;
+  }
+  .feature-item:hover { padding-left: 12px; }
+  .feature-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px; font-weight: 900;
+    color: rgba(15,13,10,0.08);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 60px;
+  }
+  .feature-content h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .feature-content p { font-size: 14px; color: #666; line-height: 1.7; }
+
+  .features-visual {
+    position: relative;
+  }
+  .app-mockup {
+    background: var(--night);
+    border-radius: 24px;
+    padding: 32px;
+    position: relative;
+    box-shadow: 40px 40px 80px rgba(15,13,10,0.2);
+    transform: rotate(3deg);
+    transition: transform 0.5s ease;
+  }
+  .app-mockup:hover { transform: rotate(0deg) scale(1.02); }
+
+  .mockup-bar {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 24px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.r { background: #FF5F57; }
+  .dot.y { background: #FFBD2E; }
+  .dot.g { background: #28CA41; }
+
+  .mockup-search {
+    background: rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--mist);
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .mockup-card {
+    background: var(--clay);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .mockup-card-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .mockup-card-sub { font-size: 12px; color: rgba(242,234,216,0.7); }
+  .mockup-card-row { display: flex; justify-content: space-between; margin-top: 16px; }
+  .mockup-tag { background: rgba(255,255,255,0.15); border-radius: 100px; padding: 4px 12px; font-size: 11px; }
+
+  .mockup-mini { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+  .mockup-mini-icon { width: 40px; height: 40px; background: var(--forest); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .mockup-mini-text { font-size: 12px; color: var(--mist); }
+  .mockup-mini-title { font-size: 14px; font-weight: 500; color: var(--sand); }
+
+  /* TOURS GRID */
+  #tours {
+    padding: 100px 48px;
+    background: var(--forest);
+  }
+
+  .tours-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    margin-top: 56px;
+  }
+
+  .tour-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: none;
+  }
+  .tour-card:hover { transform: translateY(-8px); box-shadow: 0 32px 60px rgba(0,0,0,0.3); }
+
+  .tour-img-wrap { height: 200px; overflow: hidden; position: relative; }
+  .tour-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .tour-card:hover .tour-img-wrap img { transform: scale(1.06); }
+
+  .tour-badge {
+    position: absolute; top: 16px; left: 16px;
+    background: var(--gold); color: var(--night);
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 12px; font-weight: 600;
+  }
+
+  .tour-body { padding: 28px; }
+  .tour-type { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  .tour-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700; margin-bottom: 12px;
+    color: var(--sand);
+  }
+  .tour-desc { font-size: 13px; color: rgba(242,234,216,0.55); line-height: 1.7; margin-bottom: 20px; }
+  .tour-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .tour-price { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--gold); }
+  .tour-price span { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--mist); }
+  .tour-duration { font-size: 12px; color: var(--mist); }
+
+  /* GUIDES */
+  #guides {
+    padding: 100px 48px;
+    background: var(--night);
+    text-align: center;
+  }
+
+  .guides-grid {
+    display: flex; gap: 32px;
+    justify-content: center;
+    margin-top: 64px;
+    flex-wrap: wrap;
+  }
+
+  .guide-card {
+    width: 240px;
+    text-align: center;
+    cursor: none;
+    position: relative;
+  }
+
+  .guide-photo-wrap {
+    width: 140px; height: 140px;
+    margin: 0 auto 20px;
+    position: relative;
+  }
+  .guide-photo {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .guide-card:hover .guide-photo { border-color: var(--clay); }
+  .guide-ring {
+    position: absolute; inset: -8px;
+    border: 1px dashed rgba(212,168,71,0.3);
+    border-radius: 50%;
+    animation: spin 20s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .guide-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .guide-spec { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--clay); margin-bottom: 8px; }
+  .guide-rating { color: var(--gold); font-size: 12px; }
+  .guide-tours { font-size: 12px; color: var(--mist); margin-top: 4px; }
+
+  /* TESTIMONIALS */
+  #testimonials {
+    padding: 100px 48px;
+    background: var(--clay);
+    overflow: hidden;
+  }
+
+  .testimonials-track {
+    display: flex; gap: 28px;
+    margin-top: 56px;
+    animation: marquee 30s linear infinite;
+    width: max-content;
+  }
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .testimonials-wrap:hover .testimonials-track { animation-play-state: paused; }
+
+  .testimonial-card {
+    background: rgba(0,0,0,0.15);
+    border-radius: 4px;
+    padding: 32px;
+    width: 380px; flex-shrink: 0;
+    cursor: none;
+  }
+  .testimonial-stars { color: var(--gold); font-size: 14px; margin-bottom: 16px; }
+  .testimonial-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-style: italic; line-height: 1.6;
+    color: var(--sand);
+    margin-bottom: 24px;
+  }
+  .testimonial-author { display: flex; align-items: center; gap: 12px; }
+  .testimonial-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    object-fit: cover; border: 2px solid rgba(242,234,216,0.3);
+  }
+  .testimonial-name { font-weight: 500; font-size: 14px; }
+  .testimonial-location { font-size: 12px; color: rgba(242,234,216,0.6); }
+
+  /* MAP SECTION */
+  #map-section {
+    padding: 100px 48px;
+    background: var(--sand);
+    color: var(--night);
+  }
+
+  .map-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 80px;
+    align-items: center;
+    margin-top: 60px;
+  }
+
+  .world-map-container {
+    position: relative;
+    background: rgba(15,13,10,0.05);
+    border-radius: 4px;
+    overflow: hidden;
+    height: 400px;
+    border: 1px solid rgba(15,13,10,0.1);
+  }
+
+  .map-svg {
+    width: 100%; height: 100%;
+    opacity: 0.7;
+  }
+
+  .map-pin {
+    position: absolute;
+    width: 12px; height: 12px;
+    background: var(--clay);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 0 4px rgba(196,98,45,0.2);
+    animation: pinPulse 2s ease-in-out infinite;
+    cursor: none;
+  }
+  .map-pin::after {
+    content: attr(data-label);
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    font-size: 11px; font-weight: 600; color: var(--night); white-space: nowrap;
+    letter-spacing: 1px;
+  }
+  @keyframes pinPulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(196,98,45,0.2); }
+    50% { box-shadow: 0 0 0 10px rgba(196,98,45,0.05); }
+  }
+
+  .stats-list { display: flex; flex-direction: column; gap: 32px; }
+  .stat-item {
+    display: flex; align-items: flex-start; gap: 20px;
+    padding-bottom: 32px; border-bottom: 1px solid rgba(15,13,10,0.1);
+  }
+  .stat-icon {
+    width: 52px; height: 52px;
+    background: var(--clay); color: white;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .stat-item-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px; font-weight: 900; line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-item-label { font-size: 13px; color: #777; }
+
+  /* NEWSLETTER */
+  #newsletter {
+    padding: 100px 48px;
+    background: var(--night);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  #newsletter::before {
+    content: '';
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(196,98,45,0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .newsletter-form {
+    display: flex;
+    max-width: 540px;
+    margin: 48px auto 0;
+    border: 1px solid rgba(242,234,216,0.2);
+    overflow: hidden;
+  }
+  .newsletter-input {
+    flex: 1; padding: 18px 24px;
+    background: transparent; border: none; outline: none;
+    color: var(--sand); font-family: 'DM Sans', sans-serif; font-size: 14px;
+  }
+  .newsletter-input::placeholder { color: var(--mist); }
+  .newsletter-btn {
+    background: var(--clay); border: none;
+    padding: 18px 32px; color: var(--sand);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; letter-spacing: 2px;
+    text-transform: uppercase; cursor: none;
+    font-weight: 500; transition: background 0.2s;
+  }
+  .newsletter-btn:hover { background: var(--gold); color: var(--night); }
+
+  /* FOOTER */
+  footer {
+    background: rgba(0,0,0,0.5);
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding: 60px 48px 32px;
+  }
+  .footer-top {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 60px; margin-bottom: 48px;
+  }
+  .footer-brand .logo { display: inline-block; margin-bottom: 16px; }
+  .footer-brand p { font-size: 13px; color: var(--mist); line-height: 1.7; max-width: 260px; }
+  .footer-col h4 { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--clay); margin-bottom: 20px; }
+  .footer-col ul { list-style: none; }
+  .footer-col li { margin-bottom: 12px; }
+  .footer-col a { color: var(--mist); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+  .footer-col a:hover { color: var(--gold); }
+  .footer-bottom {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.05);
+    font-size: 12px; color: var(--mist);
+  }
+  .social-links { display: flex; gap: 16px; }
+  .social-link {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none; color: var(--mist);
+    font-size: 14px; transition: all 0.2s;
+    border-radius: 2px;
+  }
+  .social-link:hover { border-color: var(--clay); color: var(--clay); }
+
+  /* SCROLL REVEAL */
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  @media (max-width: 900px) {
+    nav { padding: 20px 24px; }
+    nav ul, .nav-cta { display: none; }
+    #hero { padding: 100px 24px 80px; }
+    .stats-bar { gap: 32px; padding: 20px 24px; flex-wrap: wrap; justify-content: center; }
+    #search, #destinations, #features, #tours, #guides, #testimonials, #map-section, #newsletter, footer { padding: 60px 24px; }
+    .destinations-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+    .dest-card.large { grid-row: span 1; }
+    .tours-grid { grid-template-columns: 1fr; }
+    .features-layout { grid-template-columns: 1fr; gap: 40px; }
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+    .map-layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Navigation -->
+<nav>
+  <a href="#" class="logo">WANDR<span>.</span></a>
+  <ul>
+    <li><a href="#destinations">Destinations</a></li>
+    <li><a href="#tours">Tours</a></li>
+    <li><a href="#guides">Guides</a></li>
+    <li><a href="#map-section">Map</a></li>
+    <li><a href="#newsletter">Blog</a></li>
+  </ul>
+  <a href="#search" class="nav-cta">Plan Trip</a>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grain"></div>
+  <p class="hero-eyebrow">✦ The Ultimate Travel Companion ✦</p>
+  <h1 class="hero-title">
+    Discover<br>
+    <span class="italic">Extraordinary</span><br>
+    <span class="outline">Places</span>
+  </h1>
+  <p class="hero-sub">Expert tour guides, curated itineraries, hidden gems & everything you need — all in one breathtaking place.</p>
+  <div class="hero-btns">
+    <a href="#search" class="btn-primary">Start Exploring</a>
+    <a href="#tours" class="btn-ghost">View Tours</a>
+  </div>
+  <div class="scroll-indicator">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat"><span class="stat-num" data-count="180">0</span><span class="stat-label">Countries</span></div>
+  <div class="stat"><span class="stat-num" data-count="2400">0</span><span class="stat-label">Expert Guides</span></div>
+  <div class="stat"><span class="stat-num" data-count="95000">0</span><span class="stat-label">Happy Travelers</span></div>
+  <div class="stat"><span class="stat-num" data-count="12000">0</span><span class="stat-label">Tours Available</span></div>
+</div>
+
+<!-- Search -->
+<section id="search">
+  <div class="search-box">
+    <p class="section-label reveal">Instant Discovery</p>
+    <h2 class="section-title reveal reveal-delay-1">Find Your <span class="accent">Perfect</span> Journey</h2>
+    <div class="reveal reveal-delay-2">
+      <div class="search-tabs">
+        <button class="tab active" onclick="setTab(this)">🌍 Destination</button>
+        <button class="tab" onclick="setTab(this)">🗺️ Tours</button>
+        <button class="tab" onclick="setTab(this)">👤 Guides</button>
+        <button class="tab" onclick="setTab(this)">🏨 Hotels</button>
+      </div>
+      <div class="search-input-wrap">
+        <input type="text" class="search-input" placeholder="Where do you want to go? City, country, experience...">
+        <button class="search-btn">Search →</button>
+      </div>
+      <div class="search-tags">
+        <button class="tag">🏛️ Cultural</button>
+        <button class="tag">🏖️ Beach</button>
+        <button class="tag">🏔️ Adventure</button>
+        <button class="tag">🍜 Food Tours</button>
+        <button class="tag">🌿 Nature</button>
+        <button class="tag">🎨 Art & History</button>
+        <button class="tag">🎉 Nightlife</button>
+        <button class="tag">👨‍👩‍👧 Family</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Destinations -->
+<section id="destinations">
+  <div class="section-header reveal">
+    <div>
+      <p class="section-label">Handpicked For You</p>
+      <h2 class="section-title" style="color: var(--sand)">Top <span class="accent">Destinations</span></h2>
+    </div>
+    <a href="#" class="btn-ghost" style="margin-bottom: 8px;">View All →</a>
+  </div>
+  <div class="destinations-grid reveal">
+    <div class="dest-card large">
+      <img src="https://images.unsplash.com/photo-1555993539-1732b0258235?w=800&q=80" class="dest-img" alt="Bali">
+      <div class="dest-overlay">
+        <span class="dest-country">Indonesia</span>
+        <h3 class="dest-name">Bali</h3>
+        <p class="dest-meta">⭐ 4.9 · 1,240 tours · From $89</p>
+      </div>
+      <div class="dest-arrow">↗</div>
+    </div>
+    <div class="dest-card">
+      <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=600&q=80" class="dest-img" alt="Paris">
+      <div class="dest-overlay">
+        <span class="dest-country">France</span>
+        <h3 class="dest-name">Paris</h3>
+        <p class="dest-meta">⭐ 4.8 · 2,100 tours</p>
+      </div>
+      <div class="dest-arrow">↗</div>
+    </div>
+    <div class="dest-card">
+      <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&q=80" class="dest-img" alt="Tokyo">
+      <div class="dest-overlay">
+        <span class="dest-country">Japan</span>
+        <h3 class="dest-name">Tokyo</h3>
+        <p class="dest-meta">⭐ 4.9 · 3,400 tours</p>
+      </div>
+      <div class="dest-arrow">↗</div>
+    </div>
+    <div class="dest-card">
+      <img src="https://images.unsplash.com/photo-1451337516015-6b6e9a44a8a3?w=600&q=80" class="dest-img" alt="Santorini">
+      <div class="dest-overlay">
+        <span class="dest-country">Greece</span>
+        <h3 class="dest-name">Santorini</h3>
+        <p class="dest-meta">⭐ 4.9 · 890 tours</p>
+      </div>
+      <div class="dest-arrow">↗</div>
+    </div>
+    <div class="dest-card">
+      <img src="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=600&q=80" class="dest-img" alt="Morocco">
+      <div class="dest-overlay">
+        <span class="dest-country">Morocco</span>
+        <h3 class="dest-name">Marrakech</h3>
+        <p class="dest-meta">⭐ 4.7 · 1,560 tours</p>
+      </div>
+      <div class="dest-arrow">↗</div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <p class="section-label reveal">How It Works</p>
+  <h2 class="section-title reveal reveal-delay-1">Everything You Need,<br><span class="accent">One Platform</span></h2>
+
+  <div class="features-layout">
+    <div class="feature-list reveal">
+      <div class="feature-item">
+        <span class="feature-num">01</span>
+        <div class="feature-content">
+          <h3>Expert Local Guides</h3>
+          <p>Connect with 2,400+ vetted local experts who know every hidden corner, secret restaurant, and untold story of their city.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-num">02</span>
+        <div class="feature-content">
+          <h3>Custom Itineraries</h3>
+          <p>AI-powered trip planning that builds your perfect day-by-day itinerary based on your interests, budget, and travel style.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-num">03</span>
+        <div class="feature-content">
+          <h3>Real-Time Booking</h3>
+          <p>Instant confirmation on tours, activities, restaurants, and accommodations. No waiting, no uncertainty.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-num">04</span>
+        <div class="feature-content">
+          <h3>Offline Maps & Guides</h3>
+          <p>Download everything you need before you go. Audio guides, maps, and insider tips work without Wi-Fi.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="features-visual reveal reveal-delay-2">
+      <div class="app-mockup">
+        <div class="mockup-bar">
+          <div class="dot r"></div>
+          <div class="dot y"></div>
+          <div class="dot g"></div>
+        </div>
+        <div class="mockup-search">🔍 &nbsp;Search destinations, guides, tours...</div>
+        <div class="mockup-card">
+          <div class="mockup-card-title">Bali Sunrise Trek</div>
+          <div class="mockup-card-sub">🗓 Tomorrow · 5:00 AM · Mount Batur</div>
+          <div class="mockup-card-row">
+            <span class="mockup-tag">🧗 Adventure</span>
+            <span class="mockup-tag">⭐ 4.9</span>
+            <span class="mockup-tag">$49</span>
+          </div>
+        </div>
+        <div class="mockup-mini">
+          <div class="mockup-mini-icon">🗺️</div>
+          <div>
+            <div class="mockup-mini-title">Live Itinerary</div>
+            <div class="mockup-mini-text">Day 3 of 7 · Ubud, Bali</div>
+          </div>
+        </div>
+        <div class="mockup-mini">
+          <div class="mockup-mini-icon">👤</div>
+          <div>
+            <div class="mockup-mini-title">Guide: Made Wirawan</div>
+            <div class="mockup-mini-text">⭐ 4.98 · 312 tours · 🟢 Available now</div>
+          </div>
+        </div>
+        <div class="mockup-mini">
+          <div class="mockup-mini-icon">🌤️</div>
+          <div>
+            <div class="mockup-mini-title">Tomorrow's Weather</div>
+            <div class="mockup-mini-text">28°C · Clear skies · Perfect for hiking</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tours -->
+<section id="tours">
+  <div class="section-header reveal">
+    <div>
+      <p class="section-label">Curated Experiences</p>
+      <h2 class="section-title" style="color: var(--sand)">Featured <span class="accent">Tours</span></h2>
+    </div>
+    <a href="#" class="btn-ghost" style="margin-bottom:8px">All Tours →</a>
+  </div>
+  <div class="tours-grid">
+    <div class="tour-card reveal">
+      <div class="tour-img-wrap">
+        <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&q=80" alt="London">
+        <div class="tour-badge">Bestseller</div>
+      </div>
+      <div class="tour-body">
+        <div class="tour-type">Walking Tour</div>
+        <h3 class="tour-name">London's Hidden Gems & Street Art</h3>
+        <p class="tour-desc">Discover secret alleys, world-class street art, and stories that only locals know in this immersive walking tour.</p>
+        <div class="tour-footer">
+          <div><div class="tour-price">$45 <span>/ person</span></div><div class="tour-duration">⏱ 3 hours · Max 12 ppl</div></div>
+          <a href="#" class="btn-primary" style="padding: 10px 20px; font-size: 11px;">Book Now</a>
+        </div>
+      </div>
+    </div>
+    <div class="tour-card reveal reveal-delay-1">
+      <div class="tour-img-wrap">
+        <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=600&q=80" alt="Tokyo">
+        <div class="tour-badge">Top Rated</div>
+      </div>
+      <div class="tour-body">
+        <div class="tour-type">Food Tour</div>
+        <h3 class="tour-name">Tokyo Ramen & Izakaya Night Trail</h3>
+        <p class="tour-desc">A deep dive into Tokyo's legendary food scene — 5 stops, unlimited tastings, and stories behind every bite.</p>
+        <div class="tour-footer">
+          <div><div class="tour-price">$78 <span>/ person</span></div><div class="tour-duration">⏱ 4 hours · Max 8 ppl</div></div>
+          <a href="#" class="btn-primary" style="padding: 10px 20px; font-size: 11px;">Book Now</a>
+        </div>
+      </div>
+    </div>
+    <div class="tour-card reveal reveal-delay-2">
+      <div class="tour-img-wrap">
+        <img src="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=600&q=80" alt="Morocco">
+        <div class="tour-badge">New</div>
+      </div>
+      <div class="tour-body">
+        <div class="tour-type">Cultural Immersion</div>
+        <h3 class="tour-name">Marrakech Medina & Souk Experience</h3>
+        <p class="tour-desc">Navigate the ancient medina's labyrinthine alleys, haggle in the spice markets, and share mint tea with artisans.</p>
+        <div class="tour-footer">
+          <div><div class="tour-price">$52 <span>/ person</span></div><div class="tour-duration">⏱ 5 hours · Max 6 ppl</div></div>
+          <a href="#" class="btn-primary" style="padding: 10px 20px; font-size: 11px;">Book Now</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Guides -->
+<section id="guides">
+  <p class="section-label reveal">Meet The Experts</p>
+  <h2 class="section-title reveal reveal-delay-1" style="color:var(--sand)">Our Top <span class="accent">Guides</span></h2>
+  <div class="guides-grid reveal">
+    <div class="guide-card">
+      <div class="guide-photo-wrap">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80" class="guide-photo" alt="Guide">
+        <div class="guide-ring"></div>
+      </div>
+      <div class="guide-name">Marco Ricci</div>
+      <div class="guide-spec">Rome · History & Art</div>
+      <div class="guide-rating">★★★★★</div>
+      <div class="guide-tours">412 tours · 98% rating</div>
+    </div>
+    <div class="guide-card">
+      <div class="guide-photo-wrap">
+        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80" class="guide-photo" alt="Guide">
+        <div class="guide-ring" style="animation-direction:reverse"></div>
+      </div>
+      <div class="guide-name">Yuki Tanaka</div>
+      <div class="guide-spec">Tokyo · Food & Culture</div>
+      <div class="guide-rating">★★★★★</div>
+      <div class="guide-tours">288 tours · 99% rating</div>
+    </div>
+    <div class="guide-card">
+      <div class="guide-photo-wrap">
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80" class="guide-photo" alt="Guide">
+        <div class="guide-ring" style="animation-duration:15s"></div>
+      </div>
+      <div class="guide-name">Carlos Mendez</div>
+      <div class="guide-spec">Cusco · Adventure</div>
+      <div class="guide-rating">★★★★★</div>
+      <div class="guide-tours">557 tours · 97% rating</div>
+    </div>
+    <div class="guide-card">
+      <div class="guide-photo-wrap">
+        <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&q=80" class="guide-photo" alt="Guide">
+        <div class="guide-ring" style="animation-duration:25s; animation-direction:reverse"></div>
+      </div>
+      <div class="guide-name">Fatima El-Amin</div>
+      <div class="guide-spec">Marrakech · Culture</div>
+      <div class="guide-rating">★★★★★</div>
+      <div class="guide-tours">341 tours · 99% rating</div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section id="testimonials">
+  <p class="section-label reveal" style="color: rgba(242,234,216,0.7)">Real Stories</p>
+  <h2 class="section-title reveal reveal-delay-1" style="color: var(--sand)">What <span style="font-style:italic; color: var(--night)">Travelers</span> Say</h2>
+  <div class="testimonials-wrap">
+    <div class="testimonials-track" id="testimonialTrack">
+      <!-- Cards duplicated for infinite scroll -->
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"WANDR completely transformed how I travel. My guide in Kyoto showed me places I'd never find in any guidebook."</p>
+        <div class="testimonial-author">
+          <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80" class="testimonial-avatar" alt="">
+          <div><div class="testimonial-name">Sarah Chen</div><div class="testimonial-location">📍 Kyoto, Japan</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Booked a last-minute food tour in Barcelona and it was the highlight of our entire trip. The booking was instant and seamless."</p>
+        <div class="testimonial-author">
+          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80" class="testimonial-avatar" alt="">
+          <div><div class="testimonial-name">James Wilson</div><div class="testimonial-location">📍 Barcelona, Spain</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"The offline maps and audio guides saved us in Morocco. Having everything in one place made our chaotic trip feel effortless."</p>
+        <div class="testimonial-author">
+          <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&q=80" class="testimonial-avatar" alt="">
+          <div><div class="testimonial-name">Emma Rodriguez</div><div class="testimonial-location">📍 Marrakech, Morocco</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Our guide Marco in Rome made 2,000 years of history feel alive. My kids were completely spellbound. Worth every penny."</p>
+        <div class="testimonial-author">
+          <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80" class="testimonial-avatar" alt="">
+          <div><div class="testimonial-name">David Park</div><div class="testimonial-location">📍 Rome, Italy</div></div>
+        </div>
+      </div>
+      <!-- Duplicates for seamless loop -->
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"WANDR completely transformed how I travel. My guide in Kyoto showed me places I'd never find in any guidebook."</p>
+        <div class="testimonial-author">
+          <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80" class="testimonial-avatar" alt="">
+          <div><div class="testimonial-name">Sarah Chen</div><div class="testimonial-location">📍 Kyoto, Japan</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Booked a last-minute food tour in Barcelona and it was the highlight of our entire trip. The booking was instant and seamless."</p>
+        <div class="testimonial-author">
+          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&q=80" class="testimonial-avatar" alt="">
+          <div><div class="testimonial-name">James Wilson</div><div class="testimonial-location">📍 Barcelona, Spain</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"The offline maps and audio guides saved us in Morocco. Having everything in one place made our chaotic trip feel effortless."</p>
+        <div class="testimonial-author">
+          <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&q=80" class="testimonial-avatar" alt="">
+          <div><div class="testimonial-name">Emma Rodriguez</div><div class="testimonial-location">📍 Marrakech, Morocco</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Our guide Marco in Rome made 2,000 years of history feel alive. My kids were completely spellbound. Worth every penny."</p>
+        <div class="testimonial-author">
+          <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80" class="testimonial-avatar" alt="">
+          <div><div class="testimonial-name">David Park</div><div class="testimonial-location">📍 Rome, Italy</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Map -->
+<section id="map-section">
+  <p class="section-label reveal">Global Reach</p>
+  <h2 class="section-title reveal reveal-delay-1">We're Everywhere<br><span class="accent">You Want to Be</span></h2>
+
+  <div class="map-layout">
+    <div class="world-map-container reveal">
+      <svg viewBox="0 0 1000 500" class="map-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Simplified world map shapes -->
+        <path d="M150 120 Q200 100 250 110 Q280 115 290 130 Q300 150 280 165 Q260 175 240 170 Q210 165 190 155 Q160 140 150 120Z" fill="rgba(45,74,62,0.4)" stroke="rgba(45,74,62,0.8)" stroke-width="1"/>
+        <path d="M160 175 Q200 165 240 170 Q270 175 285 195 Q295 215 280 230 Q260 245 230 240 Q195 233 170 215 Q148 200 160 175Z" fill="rgba(45,74,62,0.4)" stroke="rgba(45,74,62,0.8)" stroke-width="1"/>
+        <path d="M300 100 Q360 85 420 90 Q470 95 500 115 Q530 135 520 165 Q508 195 470 205 Q430 215 390 205 Q350 195 325 170 Q295 140 300 100Z" fill="rgba(45,74,62,0.4)" stroke="rgba(45,74,62,0.8)" stroke-width="1"/>
+        <path d="M310 210 Q370 200 420 210 Q460 220 470 245 Q478 268 450 278 Q415 288 375 280 Q335 270 312 250 Q292 232 310 210Z" fill="rgba(45,74,62,0.4)" stroke="rgba(45,74,62,0.8)" stroke-width="1"/>
+        <path d="M540 80 Q620 65 700 80 Q760 95 790 120 Q820 148 800 175 Q778 200 740 208 Q695 215 655 205 Q610 193 580 165 Q545 132 540 80Z" fill="rgba(45,74,62,0.4)" stroke="rgba(45,74,62,0.8)" stroke-width="1"/>
+        <path d="M620 215 Q680 205 740 215 Q785 225 800 250 Q815 278 790 295 Q760 310 715 305 Q668 298 638 275 Q610 252 620 215Z" fill="rgba(45,74,62,0.4)" stroke="rgba(45,74,62,0.8)" stroke-width="1"/>
+        <path d="M750 115 Q810 105 860 120 Q895 132 900 155 Q905 178 875 190 Q840 200 800 190 Q760 180 745 158 Q730 138 750 115Z" fill="rgba(45,74,62,0.4)" stroke="rgba(45,74,62,0.8)" stroke-width="1"/>
+        <path d="M220 310 Q270 295 310 310 Q340 322 345 348 Q348 375 318 385 Q280 395 248 382 Q215 368 210 340 Q206 320 220 310Z" fill="rgba(45,74,62,0.4)" stroke="rgba(45,74,62,0.8)" stroke-width="1"/>
+      </svg>
+      <!-- Pins -->
+      <div class="map-pin" style="top:28%;left:42%" data-label="Paris"></div>
+      <div class="map-pin" style="top:25%;left:56%" data-label="Tokyo" ></div>
+      <div class="map-pin" style="top:35%;left:34%" data-label="New York"></div>
+      <div class="map-pin" style="top:55%;left:28%" data-label="Rio"></div>
+      <div class="map-pin" style="top:45%;left:48%" data-label="Bali"></div>
+      <div class="map-pin" style="top:38%;left:44%" data-label="Dubai"></div>
+    </div>
+
+    <div class="stats-list reveal reveal-delay-1">
+      <div class="stat-item">
+        <div class="stat-icon">🌍</div>
+        <div>
+          <div class="stat-item-num">180+</div>
+          <div class="stat-item-label">Countries with active tours and certified local guides</div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon">📍</div>
+        <div>
+          <div class="stat-item-num">4,200+</div>
+          <div class="stat-item-label">Cities mapped with in-depth audio walking tours</div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-icon">🗺️</div>
+        <div>
+          <div class="stat-item-num">12,000+</div>
+          <div class="stat-item-label">Unique tour experiences bookable instantly</div>
+        </div>
+      </div>
+      <div class="stat-item" style="border:none">
+        <div class="stat-icon">⭐</div>
+        <div>
+          <div class="stat-item-num">4.94</div>
+          <div class="stat-item-label">Average guide rating across all destinations</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Newsletter -->
+<section id="newsletter">
+  <p class="section-label reveal">Stay Inspired</p>
+  <h2 class="section-title reveal reveal-delay-1" style="color:var(--sand)">Get Travel <span class="accent">Inspo</span><br>Weekly</h2>
+  <p class="reveal reveal-delay-2" style="color:var(--mist); max-width:440px; margin:0 auto; line-height:1.7; font-size:15px">Hidden gems, guide spotlights, exclusive deals, and travel stories from every corner of the globe.</p>
+  <div class="reveal reveal-delay-3">
+    <div class="newsletter-form">
+      <input type="email" class="newsletter-input" placeholder="your@email.com">
+      <button class="newsletter-btn">Subscribe →</button>
+    </div>
+    <p style="font-size:12px; color:var(--mist); margin-top:16px; letter-spacing:1px">✦ 95,000+ travelers already subscribed · No spam, ever</p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a href="#" class="logo">WANDR<span>.</span></a>
+      <p>The world's most complete travel platform. Expert guides, curated tours, and everything you need — in one beautiful place.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <ul>
+        <li><a href="#">Top Destinations</a></li>
+        <li><a href="#">All Tours</a></li>
+        <li><a href="#">Find a Guide</a></li>
+        <li><a href="#">Travel Blog</a></li>
+        <li><a href="#">Trip Planner</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Become a Guide</a></li>
+        <li><a href="#">Partners</a></li>
+        <li><a href="#">Press</a></li>
+        <li><a href="#">Careers</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <ul>
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">Booking Policy</a></li>
+        <li><a href="#">Refunds</a></li>
+        <li><a href="#">Safety</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 WANDR. All rights reserved.</span>
+    <div class="social-links">
+      <a href="#" class="social-link">𝕏</a>
+      <a href="#" class="social-link">in</a>
+      <a href="#" class="social-link">ig</a>
+      <a href="#" class="social-link">yt</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Custom cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animateCursor() {
+  cursor.style.left = mx - 6 + 'px';
+  cursor.style.top = my - 6 + 'px';
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx - 18 + 'px';
+  ring.style.top = ry - 18 + 'px';
+  requestAnimationFrame(animateCursor);
+}
+animateCursor();
+
+// Hover effects
+document.querySelectorAll('a, button, .dest-card, .tour-card, .guide-card').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor.style.transform = 'scale(2)'; ring.style.transform = 'scale(1.5)'; });
+  el.addEventListener('mouseleave', () => { cursor.style.transform = 'scale(1)'; ring.style.transform = 'scale(1)'; });
+});
+
+// Tab switching
+function setTab(el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Counter animation
+const counters = document.querySelectorAll('[data-count]');
+const cObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const target = +e.target.dataset.count;
+      let current = 0;
+      const inc = target / 60;
+      const timer = setInterval(() => {
+        current += inc;
+        if (current >= target) { current = target; clearInterval(timer); }
+        e.target.textContent = Math.floor(current).toLocaleString() + (target >= 1000 ? '+' : '');
+      }, 20);
+      cObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+counters.forEach(c => cObserver.observe(c));
+</script>
+</body>
+</html>
